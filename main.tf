@@ -1,5 +1,5 @@
 terraform {
- /* cloud {
+  cloud {
     organization = "policy-as-code-training"
     workspaces {
       name = "policy-dev-ash"
@@ -7,18 +7,9 @@ terraform {
   }
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
+      source = "hashicorp/aws"
     }
   }
-} */
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 3.28.0"
-    }
-  }
-  required_version = ">= 0.14.0"
 }
 
 provider "aws" {
@@ -31,7 +22,7 @@ data "aws_availability_zones" "available" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "2.64.0"
+  version = ">= 2.64.0"
 
   cidr = "10.0.0.0/16"
 
@@ -44,13 +35,13 @@ module "vpc" {
 
   tags = {
     project     = "project-alpha",
-    environment = "development"
+    environment = "dev"
   }
 }
 
 module "app_security_group" {
   source  = "terraform-aws-modules/security-group/aws//modules/web"
-  version = "3.17.0"
+  version = ">= 3.17.0"
 
   name        = "web-sg-project-alpha-dev"
   description = "Security group for web-servers with HTTP ports open within VPC"
@@ -60,13 +51,13 @@ module "app_security_group" {
 
   tags = {
     project     = "project-alpha",
-    environment = "development"
+    environment = "dev"
   }
 }
 
 module "lb_security_group" {
   source  = "terraform-aws-modules/security-group/aws//modules/web"
-  version = "3.17.0"
+  version = ">= 3.17.0"
 
   name        = "lb-sg-project-alpha-dev"
   description = "Security group for load balancer with HTTP ports open within VPC"
@@ -76,7 +67,7 @@ module "lb_security_group" {
 
   tags = {
     project     = "project-alpha",
-    environment = "development"
+    environment = "dev"
   }
 }
 
@@ -87,7 +78,7 @@ resource "random_string" "lb_id" {
 
 module "elb_http" {
   source  = "terraform-aws-modules/elb/aws"
-  version = "2.4.0"
+  version = ">= 2.4.0"
 
   # Ensure load balancer name is unique
   name = "lb-${random_string.lb_id.result}-project-alpha-dev"
@@ -117,20 +108,20 @@ module "elb_http" {
 
   tags = {
     project     = "project-alpha",
-    environment = "development"
+    environment = "dev"
   }
 }
 
 module "ec2_instances" {
   source = "./modules/aws-instance"
 
-  instance_count = var.instance_count
-  instance_type  = var.instance_type
+  instance_count     = var.instance_count
+  instance_type      = var.instance_type
   subnet_ids         = module.vpc.private_subnets[*]
   security_group_ids = [module.app_security_group.this_security_group_id]
 
   tags = {
     project     = "project-alpha",
-    environment = "development"
+    environment = "dev"
   }
 }
